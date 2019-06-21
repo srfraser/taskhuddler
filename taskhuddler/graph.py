@@ -6,7 +6,6 @@ import logging
 import os
 from collections import defaultdict
 
-import pandas as pd
 from taskcluster import Queue
 
 from .task import Task
@@ -160,6 +159,11 @@ class TaskGraph(object):
 
     def to_dataframe(self):
         """Return a Pandas dataframe containing task data."""
+        try:
+            import pandas as pd
+        except ModuleNotFoundError:
+            raise NotImplementedError('Please install Pandas: taskhuddler[pandas]')
+
         entries = list()
         for task in self.tasklist:
             for run in task.status_json.get('runs', list()):

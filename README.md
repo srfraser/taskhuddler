@@ -3,6 +3,13 @@ A higher level wrapper around [taskcluster-client.py](https://github.com/taskclu
 
 Currently aiming to get easier, read-only features available.
 
+## Installation
+
+`pip install taskhuddler`
+
+### For further data analysis, add the optional Pandas dependency
+`pip install taskhuddler[pandas]`
+
 ## Synchronous Usage
 
 ```python
@@ -32,6 +39,18 @@ if graph.completed:
     finished = graph.latest_finished_time
     print("Graph took {} to run".format(finished-started))
 
+```
+
+## Pandas
+
+With `pip install taskhuddler[pandas]` the `to_datetime` method becomes available,
+returning a Pandas DataFrame with task and run data:
+```python
+from taskhuddler import TaskGraph
+
+graph = TaskGraph('M5hSue6oRSu_klunMRHolg')
+
+df = graph.to_datetime()
 ```
 
 ## Plans

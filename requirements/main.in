@@ -7,6 +7,5 @@ asyncinit
 boto3==1.9.91
 idna
 idna-ssl
-pandas
 python-dateutil
 taskcluster

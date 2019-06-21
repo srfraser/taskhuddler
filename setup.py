@@ -19,6 +19,13 @@ requirements_without_comments = [
     line for line in requirements_raw if line and not line.startswith('#')
 ]
 
+with open(os.path.join(project_dir, 'requirements/pandas.in')) as filehandle:
+    pandas_raw = filehandle.readlines()
+
+pandas_without_comments = [
+    line for line in pandas_raw if line and not line.startswith('#')
+]
+
 
 setup(
     name="taskhuddler",
@@ -35,6 +42,9 @@ setup(
     zip_safe=False,
     license="MPL 2.0",
     install_requires=requirements_without_comments,
+    extras_require={
+        'pandas': pandas_without_comments,
+},
     classifiers=(
         'Intended Audience :: Developers',
         'Natural Language :: English',
