@@ -1,20 +1,20 @@
 """Common utilities for understanding task graphs, async version."""
 
-import asyncio
 from urllib.parse import urlparse
+import tempfile
 
-import aiobotocore
+import aioboto3
 import aiofiles
 
 
 async def _fetch_s3_file(filename):
     """Read a file's contents from AWS S3."""
-    session = aiobotocore.get_session(loop=asyncio.get_event_loop())
-    url = urlparse(filename)
-    async with session.create_client('s3') as client:
-        response = await client.get_object(Bucket=url.netloc, Key=url.path.lstrip('/'))
-        async with response['Body'] as stream:
-            return await stream.read()
+    async with aioboto3.resource('s3') as client:
+        with tempfile.TemporaryFile() as t_file:
+            url = urlparse(filename)
+            await client.Bucket(url.netloc).download_fileobj(url.path.lstrip('/'), t_file)
+            t_file.seek(0)
+            return t_file.read()
 
 
 async def _fetch_local_file(filename):
@@ -41,13 +41,9 @@ async def fetch_file(filename):
 
 async def _store_s3_file(filename, contents):
     """Store a file on s3."""
-    session = aiobotocore.get_session(loop=asyncio.get_event_loop())
     url = urlparse(filename)
-    async with session.create_client('s3') as client:
-        resp = await client.put_object(Bucket=url.netloc,
-                                       Key=url.path.lstrip('/'),
-                                       Body=contents)
-        return resp
+    async with aioboto3.resource('s3') as client:
+        await client.put_object(Bucket=url.netloc, Key=url.path.lstrip('/'), Body=contents)
 
 
 async def _store_local_file(filename, contents):

@@ -202,6 +202,7 @@ class TaskGraph(object):
 
         Arguments:
             kind: string, may contain regex
+
         """
         import re
         for task in self.tasklist:
