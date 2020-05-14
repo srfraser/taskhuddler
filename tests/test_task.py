@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 import dateutil.parser
 import pytest
-
 import taskcluster
 from taskhuddler.task import Task, TaskDefinition, TaskStatus
 

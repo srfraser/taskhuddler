@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 import dateutil.parser
 import pytest
-
 import taskcluster
 from taskhuddler.aio import Task, TaskDefinition, TaskStatus
 
