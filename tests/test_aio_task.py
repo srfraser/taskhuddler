@@ -3,9 +3,10 @@ import os
 from unittest.mock import patch
 
 import pytest
+
+import dateutil.parser
 import taskcluster
 from taskhuddler.aio import Task, TaskDefinition, TaskStatus
-import dateutil.parser
 
 
 async def mocked_status(dummy, task_id):

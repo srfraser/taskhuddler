@@ -4,8 +4,8 @@ import json
 import logging
 import os
 
-import aiohttp
 import aiofiles
+import aiohttp
 from asyncinit import asyncinit
 from taskcluster.aio import Queue
 from taskhuddler.graph import TaskGraph as SyncTaskGraph

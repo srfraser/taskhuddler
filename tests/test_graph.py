@@ -4,8 +4,9 @@ import os
 import tempfile
 from unittest.mock import patch
 
-import dateutil.parser
 import pytest
+
+import dateutil.parser
 import taskcluster
 from taskhuddler.graph import TaskGraph
 
