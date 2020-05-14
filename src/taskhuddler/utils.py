@@ -1,9 +1,7 @@
 """Common utilities for understanding tasks."""
 import logging
 import os
-import tempfile
 from collections import namedtuple
-from urllib.parse import urlparse
 
 log = logging.getLogger(__name__)
 
