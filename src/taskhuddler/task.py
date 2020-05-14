@@ -20,7 +20,7 @@ class TaskDefinition:
         if not task_id:
             raise ValueError("No task definition or taskId provided")
         self.queue = queue
-        if not self.queue:
+        if self.queue is None:
             self.queue = Queue(tc_options())
         self._fetch_definition()
 
@@ -37,8 +37,8 @@ class TaskDefinition:
 
     @property
     def json(self):
-        """Return json as originally presented."""
-        return {"task": self.def_json}
+        """Return json."""
+        return self.def_json
 
     @property
     def label(self):
@@ -94,8 +94,8 @@ class TaskStatus:
 
     @property
     def json(self):
-        """Return json as originally presented."""
-        return {"status": self.status_json}
+        """Return json."""
+        return self.status_json
 
     @property
     def state(self):
