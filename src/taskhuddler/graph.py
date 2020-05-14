@@ -9,7 +9,7 @@ from collections import defaultdict
 from taskcluster import Queue
 
 from .task import Task
-from .utils import Range, fetch_file, merge_date_list, store_file, tc_options
+from .utils import Range, merge_date_list, tc_options
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +23,8 @@ class TaskGraph(object):
         self.tasklist = None
 
         if "TC_CACHE_DIR" in os.environ:
-            self.cache_file = os.path.join(os.environ.get("TC_CACHE_DIR"), "{}.json".format(self.groupid))
+            self.cache_file = os.path.join(os.environ.get(
+                "TC_CACHE_DIR"), "{}.json".format(self.groupid))
         else:
             self.cache_file = None
 
@@ -77,11 +78,13 @@ class TaskGraph(object):
             self._write_file_cache()
 
     def _write_file_cache(self):
-        store_file(self.cache_file, json.dumps(self.tasks(as_json=True)))
+        with open(self.cache_file, "w") as f:
+            f.write(json.dumps(self.tasks(as_json=True)))
 
     def _read_file_cache(self):
         try:
-            jsondata = json.loads(fetch_file(self.cache_file))
+            with open(self.cache_file, "r") as f:
+                jsondata = json.loads(f.read())
             self.tasklist = [Task(json=data) for data in jsondata]
         except Exception as e:
             log.debug(e)
@@ -133,7 +136,8 @@ class TaskGraph(object):
 
     def total_compute_wall_time(self):
         """Return the total time spent running tasks, ignoring wait times."""
-        dt_list = [Range(start=task.started, end=task.resolved) for task in self.tasks() if task.completed]
+        dt_list = [Range(start=task.started, end=task.resolved)
+                   for task in self.tasks() if task.completed]
         merged = merge_date_list(dt_list)
         return sum([m.end - m.start for m in merged], datetime.timedelta(0, 0))
 

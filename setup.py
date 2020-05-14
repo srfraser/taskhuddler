@@ -26,7 +26,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     license="MPL 2.0",
-    install_requires=["aioboto3", "aiofiles", "aiohttp", "async-timeout<4.0", "asyncinit", "certifi", "idna-ssl", "python-dateutil", "taskcluster",],
+    install_requires=["aiofiles", "aiohttp", "async-timeout<4.0", "asyncinit", "certifi", "idna-ssl", "python-dateutil", "taskcluster",],
     extras_require={"pandas": ["pandas"]},
     classifiers=[
         "Intended Audience :: Developers",

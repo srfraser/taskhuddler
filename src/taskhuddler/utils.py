@@ -5,67 +5,7 @@ import tempfile
 from collections import namedtuple
 from urllib.parse import urlparse
 
-import boto3
-import botocore
-
 log = logging.getLogger(__name__)
-
-
-def _fetch_s3_file(filename):
-    """Read a file's contents from AWS S3."""
-    s3 = boto3.resource("s3")
-    url = urlparse(filename)
-    with tempfile.TemporaryFile() as t_file:
-        try:
-            s3.Bucket(url.netloc).download_fileobj(url.path.lstrip("/"), t_file)
-        except botocore.exceptions.ClientError as e:
-            log.debug(e)
-            raise
-        t_file.seek(0)
-        return t_file.read()
-
-
-def _fetch_local_file(filename):
-    """Fetch a local file."""
-    with open(filename, "r") as f:
-        return f.read()
-
-
-def fetch_file(filename):
-    """Retrieve a file's contents from either local or remote.
-
-    Args:
-        filename (str): The file to load. If prefixed with s3:// it will
-            attempt to load the file from s3 using the environment's credentials.
-    Returns:
-        str: The contents of the file.
-
-    """
-    if filename.startswith("s3://"):
-        return _fetch_s3_file(filename)
-    else:
-        return _fetch_local_file(filename)
-
-
-def _store_s3_file(filename, contents):
-    """Store a file on s3."""
-    s3 = boto3.client("s3")
-    url = urlparse(filename)
-    s3.put_object(Bucket=url.netloc, Key=url.path.lstrip("/"), Body=contents)
-
-
-def _store_local_file(filename, contents):
-    """Store a file locally."""
-    with open(filename, "w") as f:
-        f.write(contents)
-
-
-def store_file(filename, contents):
-    """Store a file either locally or remotely."""
-    if filename.startswith("s3://"):
-        _store_s3_file(filename, contents)
-    else:
-        _store_local_file(filename, contents)
 
 
 Range = namedtuple("Range", ["start", "end"])

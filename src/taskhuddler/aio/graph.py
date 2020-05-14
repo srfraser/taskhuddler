@@ -5,9 +5,9 @@ import logging
 import os
 
 import aiohttp
+import aiofiles
 from asyncinit import asyncinit
 from taskcluster.aio import Queue
-from taskhuddler.aio.utils import fetch_file, store_file
 from taskhuddler.graph import TaskGraph as SyncTaskGraph
 from taskhuddler.task import Task
 from taskhuddler.utils import tc_options
@@ -25,7 +25,8 @@ class TaskGraph(SyncTaskGraph):
         self.tasklist = None
 
         if "TC_CACHE_DIR" in os.environ:
-            self.cache_file = os.path.join(os.environ.get("TC_CACHE_DIR"), "{}.json".format(self.groupid))
+            self.cache_file = os.path.join(os.environ.get(
+                "TC_CACHE_DIR"), "{}.json".format(self.groupid))
         else:
             self.cache_file = None
 
@@ -72,11 +73,13 @@ class TaskGraph(SyncTaskGraph):
                 await self._write_file_cache()
 
     async def _write_file_cache(self):
-        await store_file(self.cache_file, json.dumps(self.tasks(as_json=True)))
+        async with aiofiles.open(self.cache_file, mode="w") as f:
+            await f.write(json.dumps(self.tasks(as_json=True)))
 
     async def _read_file_cache(self):
         try:
-            jsondata = json.loads(await fetch_file(self.cache_file))
+            async with aiofiles.open(self.cache_file, mode="r") as f:
+                jsondata = json.loads(await f.read())
             self.tasklist = [Task(json=data) for data in jsondata]
         except Exception as e:
             log.warning(e)
