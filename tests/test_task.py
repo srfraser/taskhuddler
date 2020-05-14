@@ -65,8 +65,7 @@ def test_task_scheduled(filename, expected):
 
 
 @pytest.mark.parametrize(
-    "filename,expected", (["completed.json", dateutil.parser.parse(
-        "2017-10-26T01:03:59.291Z")], ["unscheduled.json", None], ["missing.json", None])
+    "filename,expected", (["completed.json", dateutil.parser.parse("2017-10-26T01:03:59.291Z")], ["unscheduled.json", None], ["missing.json", None])
 )
 def test_task_started(filename, expected):
     task = Task(json=get_dummy_task_json(filename))
@@ -74,8 +73,7 @@ def test_task_started(filename, expected):
 
 
 @pytest.mark.parametrize(
-    "filename,expected", (["completed.json", dateutil.parser.parse(
-        "2017-10-26T01:18:11.852Z")], ["unscheduled.json", None], ["missing.json", None])
+    "filename,expected", (["completed.json", dateutil.parser.parse("2017-10-26T01:18:11.852Z")], ["unscheduled.json", None], ["missing.json", None])
 )
 def test_task_resolved(filename, expected):
     task = Task(json=get_dummy_task_json(filename))
@@ -108,8 +106,7 @@ def test_task_has_failures(filename, expected):
 
 
 @pytest.mark.parametrize(
-    "filename, expected", (["completed.json", "test-windows10-64-nightly/opt-web-platform-tests-e10s-3"], [
-                           "failed.json", "nightly-l10n-linux-nightly-2/opt"])
+    "filename, expected", (["completed.json", "test-windows10-64-nightly/opt-web-platform-tests-e10s-3"], ["failed.json", "nightly-l10n-linux-nightly-2/opt"])
 )
 def test_task_names(filename, expected):
     task = Task(json=get_dummy_task_json(filename))
@@ -199,12 +196,12 @@ def test_task_repr():
 
 
 def test_task_definition():
-    taskdef = TaskDefinition(task_id="foo", json=get_dummy_task_definition('completed.json'))
+    taskdef = TaskDefinition(task_id="foo", json=get_dummy_task_definition("completed.json"))
     assert taskdef.label == "test-windows10-64-nightly/opt-web-platform-tests-e10s-3"
 
 
 def test_task_definition_only_def():
-    taskdef = TaskDefinition(json=get_dummy_task_definition('completed.json'))
+    taskdef = TaskDefinition(json=get_dummy_task_definition("completed.json"))
     assert taskdef.label == "test-windows10-64-nightly/opt-web-platform-tests-e10s-3"
 
 
@@ -221,6 +218,6 @@ def test_task_definition_empty():
 
 
 def test_task_definition_json_view():
-    taskdef_json = get_dummy_task_definition('completed.json')
+    taskdef_json = get_dummy_task_definition("completed.json")
     taskdef = TaskDefinition(json=taskdef_json)
     assert taskdef.json == taskdef_json

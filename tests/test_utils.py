@@ -79,5 +79,3 @@ def test_merge_dates_bad_args(r1, r2):
 )
 def test_merge_date_list(dt_list, expected):
     assert utils.merge_date_list(dt_list) == expected
-
-

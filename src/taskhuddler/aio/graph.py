@@ -25,8 +25,7 @@ class TaskGraph(SyncTaskGraph):
         self.tasklist = None
 
         if "TC_CACHE_DIR" in os.environ:
-            self.cache_file = os.path.join(os.environ.get(
-                "TC_CACHE_DIR"), "{}.json".format(self.groupid))
+            self.cache_file = os.path.join(os.environ.get("TC_CACHE_DIR"), "{}.json".format(self.groupid))
         else:
             self.cache_file = None
 

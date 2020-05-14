@@ -9,8 +9,14 @@ import pytest
 import taskcluster
 from taskhuddler.graph import TaskGraph
 
-TASK_IDS = ["A-8AqzvvRsqH9b0VHBXYjA", "A-aPcZanRJaxM-IToHyyHw", "B-aPcZanRJaxM-IToHyyHw",
-            "A0BaQjdkS8Wdy2Ev_1pLgA", "A0VWjOkmRNqkKrRUj83BEA", "A0cabJ3WTeCrDN15nbTPYw"]
+TASK_IDS = [
+    "A-8AqzvvRsqH9b0VHBXYjA",
+    "A-aPcZanRJaxM-IToHyyHw",
+    "B-aPcZanRJaxM-IToHyyHw",
+    "A0BaQjdkS8Wdy2Ev_1pLgA",
+    "A0VWjOkmRNqkKrRUj83BEA",
+    "A0cabJ3WTeCrDN15nbTPYw",
+]
 
 
 def mocked_listTaskGroup(dummy, groupid, query):
@@ -87,8 +93,7 @@ def test_task_timings():
 def test_kinds():
     with patch.object(taskcluster.Queue, "listTaskGroup", new=mocked_listTaskGroup):
         graph = TaskGraph("eShtp2faQgy4iZZOIhXvhw")
-    expected = ["nightly-l10n", "repackage-signing",
-                "test", "beetmover-checksums", "missing-treeherder"]
+    expected = ["nightly-l10n", "repackage-signing", "test", "beetmover-checksums", "missing-treeherder"]
     assert sorted(graph.kinds) == sorted(expected)
 
 
@@ -162,4 +167,5 @@ def test_graph_to_dataframe():
         graph = TaskGraph("eShtp2faQgy4iZZOIhXvhw")
         df = graph.to_dataframe()
         assert sorted(df.taskid.to_list()) == sorted(
-            ["A-8AqzvvRsqH9b0VHBXYjA", "A-aPcZanRJaxM-IToHyyHw", "A0BaQjdkS8Wdy2Ev_1pLgA", "A0VWjOkmRNqkKrRUj83BEA", "B-aPcZanRJaxM-IToHyyHw"])
+            ["A-8AqzvvRsqH9b0VHBXYjA", "A-aPcZanRJaxM-IToHyyHw", "A0BaQjdkS8Wdy2Ev_1pLgA", "A0VWjOkmRNqkKrRUj83BEA", "B-aPcZanRJaxM-IToHyyHw"]
+        )

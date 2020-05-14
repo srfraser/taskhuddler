@@ -23,8 +23,7 @@ class TaskGraph(object):
         self.tasklist = None
 
         if "TC_CACHE_DIR" in os.environ:
-            self.cache_file = os.path.join(os.environ.get(
-                "TC_CACHE_DIR"), "{}.json".format(self.groupid))
+            self.cache_file = os.path.join(os.environ.get("TC_CACHE_DIR"), "{}.json".format(self.groupid))
         else:
             self.cache_file = None
 
@@ -136,8 +135,7 @@ class TaskGraph(object):
 
     def total_compute_wall_time(self):
         """Return the total time spent running tasks, ignoring wait times."""
-        dt_list = [Range(start=task.started, end=task.resolved)
-                   for task in self.tasks() if task.completed]
+        dt_list = [Range(start=task.started, end=task.resolved) for task in self.tasks() if task.completed]
         merged = merge_date_list(dt_list)
         return sum([m.end - m.start for m in merged], datetime.timedelta(0, 0))
 
