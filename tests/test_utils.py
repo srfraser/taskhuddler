@@ -2,7 +2,6 @@ import os
 from datetime import datetime
 
 import pytest
-
 import taskhuddler.utils as utils
 from dateutil.parser import parse
 

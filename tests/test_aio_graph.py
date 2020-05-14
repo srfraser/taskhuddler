@@ -4,7 +4,6 @@ import tempfile
 from unittest.mock import patch
 
 import pytest
-
 import taskcluster
 from taskhuddler.aio import TaskGraph
 

@@ -5,9 +5,9 @@ import json
 import os
 from unittest.mock import patch
 
+import dateutil.parser
 import pytest
 
-import dateutil.parser
 import taskcluster
 from taskhuddler.task import Task, TaskDefinition, TaskStatus
 
