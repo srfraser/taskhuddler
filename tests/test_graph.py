@@ -9,7 +9,8 @@ import pytest
 import taskcluster
 from taskhuddler.graph import TaskGraph
 
-TASK_IDS = ["A-8AqzvvRsqH9b0VHBXYjA", "A-aPcZanRJaxM-IToHyyHw", "A0BaQjdkS8Wdy2Ev_1pLgA", "A0VWjOkmRNqkKrRUj83BEA", "A0cabJ3WTeCrDN15nbTPYw"]
+TASK_IDS = ["A-8AqzvvRsqH9b0VHBXYjA", "A-aPcZanRJaxM-IToHyyHw", "B-aPcZanRJaxM-IToHyyHw",
+            "A0BaQjdkS8Wdy2Ev_1pLgA", "A0VWjOkmRNqkKrRUj83BEA", "A0cabJ3WTeCrDN15nbTPYw"]
 
 
 def mocked_listTaskGroup(dummy, groupid, query):
@@ -86,11 +87,12 @@ def test_task_timings():
 def test_kinds():
     with patch.object(taskcluster.Queue, "listTaskGroup", new=mocked_listTaskGroup):
         graph = TaskGraph("eShtp2faQgy4iZZOIhXvhw")
-    expected = ["nightly-l10n", "repackage-signing", "test", "beetmover-checksums"]
+    expected = ["nightly-l10n", "repackage-signing",
+                "test", "beetmover-checksums", "missing-treeherder"]
     assert sorted(graph.kinds) == sorted(expected)
 
 
-@pytest.mark.parametrize("kind,expected", [(None, 5), ("test", 1)])
+@pytest.mark.parametrize("kind,expected", [(None, 6), ("test", 1)])
 def test_filter_kinds(kind, expected):
     with patch.object(taskcluster.Queue, "listTaskGroup", new=mocked_listTaskGroup):
         graph = TaskGraph("eShtp2faQgy4iZZOIhXvhw")
@@ -134,13 +136,13 @@ def test_graph_completed():
 def test_graph_states():
     with patch.object(taskcluster.Queue, "listTaskGroup", new=mocked_listTaskGroup):
         graph = TaskGraph("eShtp2faQgy4iZZOIhXvhw")
-        assert graph.current_states() == {"completed": 3, "failed": 1, "unscheduled": 1}
+        assert graph.current_states() == {"completed": 4, "failed": 1, "unscheduled": 1}
 
 
 def test_graph_total_compute_time():
     with patch.object(taskcluster.Queue, "listTaskGroup", new=mocked_listTaskGroup):
         graph = TaskGraph("eShtp2faQgy4iZZOIhXvhw")
-        assert graph.total_compute_time() == datetime.timedelta(seconds=1120, microseconds=101000)
+        assert graph.total_compute_time() == datetime.timedelta(seconds=1316, microseconds=516000)
 
 
 def test_graph_total_wall_time():
@@ -152,11 +154,12 @@ def test_graph_total_wall_time():
 def test_graph_total_compute_wall_time():
     with patch.object(taskcluster.Queue, "listTaskGroup", new=mocked_listTaskGroup):
         graph = TaskGraph("eShtp2faQgy4iZZOIhXvhw")
-        assert graph.total_compute_wall_time() == datetime.timedelta(seconds=1048, microseconds=976000)
+        assert graph.total_compute_wall_time() == datetime.timedelta(seconds=1245, microseconds=391000)
 
 
 def test_graph_to_dataframe():
     with patch.object(taskcluster.Queue, "listTaskGroup", new=mocked_listTaskGroup):
         graph = TaskGraph("eShtp2faQgy4iZZOIhXvhw")
         df = graph.to_dataframe()
-        assert df.taskid.to_list() == ["A-8AqzvvRsqH9b0VHBXYjA", "A-aPcZanRJaxM-IToHyyHw", "A0BaQjdkS8Wdy2Ev_1pLgA", "A0VWjOkmRNqkKrRUj83BEA"]
+        assert sorted(df.taskid.to_list()) == sorted(
+            ["A-8AqzvvRsqH9b0VHBXYjA", "A-aPcZanRJaxM-IToHyyHw", "A0BaQjdkS8Wdy2Ev_1pLgA", "A0VWjOkmRNqkKrRUj83BEA", "B-aPcZanRJaxM-IToHyyHw"])

@@ -127,6 +127,85 @@
                     "parent": "eShtp2faQgy4iZZOIhXvhw"
                 }
             }
+        },
+        {
+            "status": {
+                "taskId": "B-aPcZanRJaxM-IToHyyHw",
+                "provisionerId": "scriptworker-prov-v1",
+                "workerType": "signing-linux-v1",
+                "schedulerId": "gecko-level-3",
+                "taskGroupId": "eShtp2faQgy4iZZOIhXvhw",
+                "deadline": "2017-10-26T23:06:58.090Z",
+                "expires": "2018-10-25T23:06:58.090Z",
+                "retriesLeft": 5,
+                "state": "completed",
+                "runs": [
+                    {
+                        "runId": 0,
+                        "state": "completed",
+                        "reasonCreated": "scheduled",
+                        "reasonResolved": "completed",
+                        "workerGroup": "signing-linux-v1",
+                        "workerId": "signing-linux-3",
+                        "takenUntil": "2017-10-26T04:14:26.233Z",
+                        "scheduled": "2017-10-26T03:04:08.623Z",
+                        "started": "2017-10-26T03:54:26.312Z",
+                        "resolved": "2017-10-26T03:57:42.727Z"
+                    }
+                ]
+            },
+            "task": {
+                "provisionerId": "scriptworker-prov-v1",
+                "workerType": "signing-linux-v1",
+                "schedulerId": "gecko-level-3",
+                "taskGroupId": "eShtp2faQgy4iZZOIhXvhw",
+                "dependencies": [
+                    "LMl0OQFlT5W0X5ap4Q_aWQ",
+                    "X2yXKg-vTZazUS9I-qWGiw",
+                    "XF_8jYKYSe6BT6g_A3avpQ",
+                    "eeb-CbVITyWMRvv1xHsZAw"
+                ],
+                "requires": "all-completed",
+                "routes": [
+                    "tc-treeherder.v2.mozilla-central.64bab5cbb9b63808d04babfbcfba3175fd99f69d.-1",
+                    "tc-treeherder-stage.v2.mozilla-central.64bab5cbb9b63808d04babfbcfba3175fd99f69d.-1"
+                ],
+                "priority": "medium",
+                "retries": 5,
+                "created": "2017-10-25T23:06:58.090Z",
+                "deadline": "2017-10-26T23:06:58.090Z",
+                "expires": "2018-10-25T23:06:58.090Z",
+                "scopes": [
+                    "project:releng:signing:cert:nightly-signing",
+                    "project:releng:signing:format:mar_sha384",
+                    "project:releng:signing:format:sha2signcode",
+                    "project:releng:signing:format:sha2signcodestub"
+                ],
+                "payload": {
+                    "maxRunTime": 3600
+                },
+                "metadata": {
+                    "owner": "nobody@noreply.mozilla.org",
+                    "source": "https://hg.mozilla.org/mozilla-central/file/64bab5cbb9b63808d04babfbcfba3175fd99f69d/taskcluster/ci/repackage-signing",
+                    "description": "Missing treeherder task",
+                    "name": "missing-treeherder-data-task"
+                },
+                "tags": {
+                    "createdForUser": "nobody@noreply.mozilla.org",
+                    "kind": "missing-treeherder",
+                    "label": "missing-treeherder-data-task"
+                },
+                "extra": {
+                    "index": {
+                        "rank": 1508972680
+                    },
+                    "treeherderEnv": [
+                        "production",
+                        "staging"
+                    ],
+                    "parent": "eShtp2faQgy4iZZOIhXvhw"
+                }
+            }
         }
     ],
     "continuationToken": "continuation2"
