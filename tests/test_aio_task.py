@@ -2,8 +2,8 @@ import json
 import os
 from unittest.mock import patch
 
-import pytest
 import dateutil.parser
+import pytest
 import taskcluster
 from taskhuddler.aio import Task, TaskDefinition, TaskStatus
 
