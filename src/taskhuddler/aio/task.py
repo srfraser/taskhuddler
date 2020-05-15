@@ -1,9 +1,11 @@
 """Helpful wrapper around release related taskcluster operations."""
 
 import logging
+from dataclasses import dataclass
 
-from asyncinit import asyncinit
 from taskcluster.aio import Queue
+from taskhuddler.task import Task as SyncTask
+from taskhuddler.task import TaskArtifact as SyncTaskArtifact
 from taskhuddler.task import TaskDefinition as SyncTaskDefinition
 from taskhuddler.task import TaskStatus as SyncTaskStatus
 from taskhuddler.utils import tc_options
@@ -11,81 +13,49 @@ from taskhuddler.utils import tc_options
 log = logging.getLogger(__name__)
 
 
-@asyncinit
+@dataclass
 class TaskDefinition(SyncTaskDefinition):
     """Helper class for dealing with Tasks, asyncio version."""
 
-    async def __init__(self, json=None, task_id=None, queue=None):
-        """Init."""
-        # taskId is not provided in the definition
-        if task_id:
-            self.task_id = task_id
-        if json:
-            self.def_json = json.get("task", json)
-            return
-        if not task_id:
-            raise ValueError("No task definition or taskId provided")
-        self.queue = queue
-        if not self.queue:
-            self.queue = Queue(tc_options())
-        await self._fetch_definition()
-
-    async def _fetch_definition(self):
-        self.def_json = await self.queue.task(self.task_id)
+    @classmethod
+    async def from_task_id(cls, task_id):
+        queue = Queue(tc_options())
+        taskdef = await queue.task(task_id)
+        return cls(taskId=task_id, **taskdef)
 
 
-@asyncinit
+@dataclass
 class TaskStatus(SyncTaskStatus):
     """Helper class for dealing with Tasks, asyncio version."""
 
-    async def __init__(self, json=None, task_id=None, queue=None):
-        """Init."""
-        if task_id:
-            self.task_id = task_id
-        if json:
-            # We might be passed {'status': ... } or just the contents
-            self.status_json = json.get("status", json)
-            self.task_id = self.status_json["taskId"]
-            return
-        if not task_id:
-            raise ValueError("No task definition or taskId provided")
+    @classmethod
+    async def from_task_id(cls, task_id):
+        queue = Queue(tc_options())
+        status = await queue.status(task_id)
+        return cls(**status["status"])
+
+
+@dataclass
+class TaskArtifact(SyncTaskArtifact):
+    """Understanding task artifacts."""
+
+    async def fetch(self, queue=None):
         self.queue = queue
-        if not self.queue:
+        if self.queue is None:
             self.queue = Queue(tc_options())
-        await self._fetch_status()
+        if self.run_id:
+            return await self.queue.getArtifact(self.task_id, self.run_id, self.name)
+        else:
+            return await self.queue.getLatestArtifact(self.task_id, self.name)
 
-    async def _fetch_status(self):
-        json = await self.queue.status(self.task_id)
-        self.status_json = json.get("status", json)
 
-
-@asyncinit
-class Task(TaskDefinition, TaskStatus):
+@dataclass(repr=False)
+class Task(SyncTask):
     """Helper class for dealing with Tasks, asyncio version."""
 
-    async def __init__(self, json=None, task_id=None, queue=None):
-        """init."""
-        if json:
-            self.def_json = json.get("task")
-            self.status_json = json.get("status")
-            self.task_id = self.status_json["taskId"]
-            return
-
-        if task_id:
-            self.task_id = task_id
-        else:
-            raise ValueError("No task definition or taskId provided")
-        self.queue = queue
-        if not self.queue:
-            self.queue = Queue(tc_options())
-        if self.task_id:
-            await self._fetch_definition()
-            await self._fetch_status()
-
-    def __repr__(self):
-        """repr."""
-        return "<Task {}>".format(self.task_id)
-
-    def __str__(self):
-        """Str representation."""
-        return "<Task {}:{}>".format(self.task_id, self.state)
+    @classmethod
+    async def from_task_id(cls, task_id):
+        queue = Queue(tc_options())
+        status = await queue.status(task_id)
+        taskdef = await queue.task(task_id)
+        return cls(TaskDefinition.from_dict(task_id, taskdef), TaskStatus.from_dict(status["status"]))

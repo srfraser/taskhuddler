@@ -2,8 +2,9 @@ import json
 import os
 from unittest.mock import patch
 
-import dateutil.parser
 import pytest
+
+import dateutil.parser
 import taskcluster
 from taskhuddler.aio import Task, TaskDefinition, TaskStatus
 
@@ -23,20 +24,12 @@ def get_dummy_task_json(filename):
 
 def get_dummy_task_status(filename):
     full = get_dummy_task_json(filename)
-    return full.get("status")
+    return {"status": full.get("status")}
 
 
 def get_dummy_task_definition(filename):
     full = get_dummy_task_json(filename)
     return full.get("task")
-
-
-@pytest.mark.asyncio
-async def test_task_str():
-    with patch.object(taskcluster.aio.Queue, "status", new=mocked_status), patch.object(taskcluster.aio.Queue, "task", new=mocked_definition):
-        task = await Task(task_id="A-8AqzvvRsqH9b0VHBXYjA")
-        assert "{}".format(task) == "<Task A-8AqzvvRsqH9b0VHBXYjA:completed>"
-        assert repr(task) == "<Task A-8AqzvvRsqH9b0VHBXYjA>"
 
 
 @pytest.mark.parametrize(
@@ -48,8 +41,8 @@ async def test_task_str():
     ),
 )
 @pytest.mark.asyncio
-async def test_task_status_by_json(filename, started, is_completed, state):
-    task = await TaskStatus(json=get_dummy_task_json(filename))
+async def test_task_status_from_dict(filename, started, is_completed, state):
+    task = TaskStatus.from_dict(get_dummy_task_json(filename))
     assert task.started == started
     assert task.completed is is_completed
     assert task.state == state
@@ -59,27 +52,11 @@ async def test_task_status_by_json(filename, started, is_completed, state):
 async def test_task_status_by_task_id():
     task_id = "A-8AqzvvRsqH9b0VHBXYjA"
     with patch.object(taskcluster.aio.Queue, "status", new=mocked_status):
-        task = await TaskStatus(task_id=task_id)
+        task = await TaskStatus.from_task_id(task_id=task_id)
         assert task.state == "completed"
 
 
 @pytest.mark.asyncio
 async def test_task_status_no_input():
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         await TaskStatus()
-
-
-@pytest.mark.asyncio
-async def test_taskstatus_str():
-    with patch.object(taskcluster.aio.Queue, "status", new=mocked_status):
-        task = await TaskStatus(task_id="A-8AqzvvRsqH9b0VHBXYjA")
-        assert "{}".format(task) == "<TaskStatus A-8AqzvvRsqH9b0VHBXYjA:completed>"
-        assert repr(task) == "<TaskStatus A-8AqzvvRsqH9b0VHBXYjA>"
-
-
-@pytest.mark.asyncio
-async def test_taskdef_str():
-    with patch.object(taskcluster.aio.Queue, "task", new=mocked_definition):
-        task = await TaskDefinition(task_id="A-8AqzvvRsqH9b0VHBXYjA")
-        assert "{}".format(task) == "<TaskDefinition A-8AqzvvRsqH9b0VHBXYjA>"
-        assert repr(task) == "<TaskDefinition A-8AqzvvRsqH9b0VHBXYjA>"

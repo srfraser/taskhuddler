@@ -31,18 +31,7 @@ class TaskGraph(SyncTaskGraph):
 
         await self.fetch_tasks(limit=limit)
 
-    async def fetch_tasks(self, limit=None):
-        """Return tasks with the associated group ID.
-
-        Handles continuationToken without the user being aware of it.
-
-        Enforces the limit parameter as a limit of the total number of tasks
-        to be returned.
-        """
-        if self.cache_file:
-            if await self._read_file_cache():
-                return
-
+    async def _fetch_tasks_from_queue(self, limit=None):
         query = {}
         if limit:
             # Default taskcluster-client api asks for 1000 tasks.
@@ -64,23 +53,45 @@ class TaskGraph(SyncTaskGraph):
                 outcome = await queue.listTaskGroup(self.groupid, query=query)
                 tasks.extend(outcome.get("tasks", []))
 
-            if limit:
-                tasks = tasks[:limit]
-            self.tasklist = [Task(json=data) for data in tasks]
+        if limit:
+            tasks = tasks[:limit]
 
-            if self.cache_file:
-                await self._write_file_cache()
+        return tasks
+
+    async def fetch_tasks(self, limit=None):
+        """Return tasks with the associated group ID.
+
+        Handles continuationToken without the user being aware of it.
+
+        Enforces the limit parameter as a limit of the total number of tasks
+        to be returned.
+        """
+        graphdata = list()
+        if self.cache_file:
+            graphdata = await self._read_file_cache()
+
+        refreshed = False
+        if not graphdata:
+            graphdata = await self._fetch_tasks_from_queue(limit)
+            refreshed = True
+
+        self.tasklist = [Task.from_dict(data) for data in graphdata]
+
+        if self.cache_file and refreshed:
+            await self._write_file_cache()
 
     async def _write_file_cache(self):
         async with aiofiles.open(self.cache_file, mode="w") as f:
-            await f.write(json.dumps(self.tasks(as_json=True)))
+            await f.write(json.dumps(self.tasks(raw=True)))
 
     async def _read_file_cache(self):
+        tasks = list()
+        if not os.path.isfile(self.cache_file):
+            return tasks
         try:
             async with aiofiles.open(self.cache_file, mode="r") as f:
-                jsondata = json.loads(await f.read())
-            self.tasklist = [Task(json=data) for data in jsondata]
+                tasks = json.loads(await f.read())
         except Exception as e:
-            log.warning(e)
-            return False
-        return True
+            log.debug(e)
+
+        return tasks

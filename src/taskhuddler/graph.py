@@ -5,6 +5,7 @@ import json
 import logging
 import os
 from collections import defaultdict
+from dataclasses import asdict
 
 from taskcluster import Queue
 
@@ -37,19 +38,7 @@ class TaskGraph(object):
         """Str representation."""
         return "<TaskGraph {}>".format(self.groupid)
 
-    def fetch_tasks(self, limit=None):
-        """
-        Return tasks with the associated group ID.
-
-        Handles continuationToken without the user being aware of it.
-
-        Enforces the limit parameter as a limit of the total number of tasks
-        to be returned.
-        """
-        if self.cache_file:
-            if self._read_file_cache():
-                return
-
+    def _fetch_tasks_from_queue(self, limit=None):
         query = {}
         if limit:
             # Default taskcluster-client api asks for 1000 tasks.
@@ -71,29 +60,51 @@ class TaskGraph(object):
 
         if limit:
             tasks = tasks[:limit]
-        self.tasklist = [Task(json=data) for data in tasks]
+        return tasks
 
+    def fetch_tasks(self, limit=None):
+        """
+        Return tasks with the associated group ID.
+
+        Handles continuationToken without the user being aware of it.
+
+        Enforces the limit parameter as a limit of the total number of tasks
+        to be returned.
+        """
+        graphdata = list()
         if self.cache_file:
+            graphdata = self._read_file_cache()
+
+        refreshed = False
+        if not graphdata:
+            graphdata = self._fetch_tasks_from_queue(limit)
+            refreshed = True
+
+        self.tasklist = [Task.from_dict(data) for data in graphdata]
+
+        if self.cache_file and refreshed:
             self._write_file_cache()
 
     def _write_file_cache(self):
         with open(self.cache_file, "w") as f:
-            f.write(json.dumps(self.tasks(as_json=True)))
+            f.write(json.dumps(self.tasks(raw=True)))
 
     def _read_file_cache(self):
+        tasks = list()
+        if not os.path.isfile(self.cache_file):
+            return tasks
         try:
             with open(self.cache_file, "r") as f:
-                jsondata = json.loads(f.read())
-            self.tasklist = [Task(json=data) for data in jsondata]
+                tasks = json.loads(f.read())
         except Exception as e:
             log.debug(e)
-            return False
-        return True
 
-    def tasks(self, limit=None, as_json=False):
+        return tasks
+
+    def tasks(self, limit=None, raw=False):
         """Return all tasks in the graph."""
-        if as_json:
-            return [t.json for t in self.tasklist[:limit]]
+        if raw:
+            return [asdict(t) for t in self.tasklist[:limit]]
         else:
             return self.tasklist[:limit]
 
@@ -103,28 +114,28 @@ class TaskGraph(object):
 
         Returns bool.
         """
-        return all([task.completed for task in self.tasks()])
+        return all([task.status.completed for task in self.tasks()])
 
     def current_states(self):
         """Count the occurences of current states."""
         states = defaultdict(int)
-        for state in [task.state for task in self.tasks()]:
+        for state in [task.status.state for task in self.tasks()]:
             states[state] += 1
         return states
 
     @property
     def earliest_start_time(self):
         """Find the earliest start time for any task in the graph."""
-        return min([task.started for task in self.tasks() if task.started])
+        return min([task.status.started for task in self.tasks() if task.status.started])
 
     @property
     def latest_finished_time(self):
         """Find the latest finish time for resolved tasks."""
-        return max([task.resolved for task in self.tasks() if task.resolved])
+        return max([task.status.resolved for task in self.tasks() if task.status.resolved])
 
     def total_compute_time(self):
         """Sum of all the task run times, as timedelta."""
-        return sum([sum(task.run_durations(), datetime.timedelta(0)) for task in self.tasks() if task.completed], datetime.timedelta(0, 0))
+        return sum([sum(task.status.run_durations(), datetime.timedelta(0)) for task in self.tasks() if task.status.completed], datetime.timedelta(0, 0))
 
     def total_wall_time(self):
         """Return the total wall time for this graph.
@@ -135,21 +146,21 @@ class TaskGraph(object):
 
     def total_compute_wall_time(self):
         """Return the total time spent running tasks, ignoring wait times."""
-        dt_list = [Range(start=task.started, end=task.resolved) for task in self.tasks() if task.completed]
+        dt_list = [Range(start=task.status.started, end=task.status.resolved) for task in self.tasks() if task.status.completed]
         merged = merge_date_list(dt_list)
         return sum([m.end - m.start for m in merged], datetime.timedelta(0, 0))
 
     def task_timings(self):
         """For every finished task that has fields we group on, report duration."""
         for task in self.tasklist:
-            if not task.completed:
+            if not task.status.completed:
                 continue
             try:
-                kind = task.json["task"]["tags"]["kind"]
-                platform = task.json["task"]["extra"]["treeherder"]["machine"]["platform"]
+                kind = task.task.tags["kind"]
+                platform = task.task.extra["treeherder"]["machine"]["platform"]
             except KeyError:
                 continue
-            yield {"kind": kind, "platform": platform, "duration": (task.resolved - task.started).seconds}
+            yield {"kind": kind, "platform": platform, "duration": (task.status.resolved - task.status.started).seconds}
 
     def to_dataframe(self):
         """Return a Pandas dataframe containing task data."""
@@ -160,19 +171,19 @@ class TaskGraph(object):
 
         entries = list()
         for task in self.tasklist:
-            for run in task.status_json.get("runs", list()):
+            for run in task.status.runs:
                 # Some tasks have no platform
                 try:
-                    platform = task.json["task"]["extra"]["treeherder"]["machine"]["platform"]
+                    platform = task.task.extra["treeherder"]["machine"]["platform"]
                 except KeyError:
                     platform = None
                 entries.append(
                     {
-                        "name": task.name,
-                        "taskid": task.taskid,
+                        "name": task.task.name,
+                        "taskid": task.taskId,
                         "kind": task.kind,
                         "platform": platform,
-                        "worker_type": task.status_json.get("workerType"),
+                        "worker_type": task.status.workerType,
                         "worker_id": run.get("workerId"),
                         "run_id": run["runId"],
                         "scheduled": run.get("scheduled"),
@@ -210,10 +221,10 @@ class TaskGraph(object):
     def tasks_with_failures(self):
         """Return tasks which have failures in any run."""
         for task in self.tasklist:
-            if task.has_failures:
+            if task.status.has_failures:
                 yield task
 
     def task_names_with_failures(self):
         """Return the names of tasks which have failures."""
         for task in self.tasks_with_failures():
-            yield task.name
+            yield task.task.name
