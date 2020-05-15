@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import List
 
 import dateutil.parser
+import json
 from taskcluster import Queue
 
 from .utils import tc_options
@@ -266,8 +267,5 @@ class Task:
     def fetch_artifacts_matching(self, pattern):
         for artifact in self.artifacts_matching(pattern):
             content = artifact.fetch()
-            print(content)
-            import json
-
             with open("test.json", "w") as f:
                 json.dump(content, f, indent=4)
