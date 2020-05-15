@@ -2,6 +2,7 @@ import json
 import os
 from unittest.mock import patch
 
+import dateutil.parser
 import pytest
 
 import dateutil.parser
@@ -46,6 +47,20 @@ async def test_task_status_from_dict(filename, started, is_completed, state):
     assert task.started == started
     assert task.completed is is_completed
     assert task.state == state
+
+
+@pytest.mark.asyncio
+async def test_task_status_by_task_id():
+    task_id = "A-8AqzvvRsqH9b0VHBXYjA"
+    with patch.object(taskcluster.aio.Queue, "status", new=mocked_status):
+        task = await TaskStatus(task_id=task_id)
+        assert task.state == "completed"
+
+
+@pytest.mark.asyncio
+async def test_task_status_no_input():
+    with pytest.raises(ValueError):
+        await TaskStatus()
 
 
 @pytest.mark.asyncio
