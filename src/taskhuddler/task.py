@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from typing import List
 
 import dateutil.parser
-import json
 from taskcluster import Queue
 
 from .utils import tc_options
