@@ -51,7 +51,7 @@ async def test_task_status_from_dict(filename, started, is_completed, state):
 async def test_task_status_by_task_id():
     task_id = "A-8AqzvvRsqH9b0VHBXYjA"
     with patch.object(taskcluster.aio.Queue, "status", new=mocked_status):
-        task = await TaskStatus(task_id=task_id)
+        task = await TaskStatus.from_task_id(task_id)
         assert task.state == "completed"
 
 
