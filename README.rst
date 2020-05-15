@@ -11,8 +11,8 @@ For further data analysis, add the optional Pandas dependency
 -------------------------------------------------------------
 ``pip install taskhuddler[pandas]``
 
-Synchronous Usage
-=================
+Examining a Task Group
+======================
 
 .. code-block:: python
 
@@ -22,9 +22,7 @@ Synchronous Usage
     # But this means data may get stale.
     graph = TaskGraph('M5hSue6oRSu_klunMRHolg')
     for task in graph.tasks():
-        # These two are equivalent. Task() object knows about some features of a task
-        print(task.json['status']['taskId'])
-        print(task.taskid)  
+        print(task.taskId)
     # Fetch the set of tasks again.
     graph.fetch_tasks()
 
@@ -41,6 +39,36 @@ Synchronous Usage
         started = graph.earliest_start_time
         finished = graph.latest_finished_time
         print("Graph took {} to run".format(finished-started))
+
+
+
+Examining Tasks
+===============
+
+TaskDefinition, TaskStatus and Task are all available to work with tasks. A `Task` is a wrapper around
+a TaskDefinition and a TaskStatus.
+
+
+
+The Task class populates both a TaskStatus and TaskDefinition, each of which can be used by themselves
+.. code-block:: python
+
+    from taskhuddler import Task, TaskDefinition, TaskStatus
+    from dataclasses import asdict
+
+    mytask = Task.from_task_id('M5hSue6oRSu_klunMRHolg')
+    print(task.status.state)
+
+    print(asdict(task))
+
+    my_task_def = TaskDefinition.from_task_id('M5hSue6oRSu_klunMRHolg')
+    my_task_def = TaskDefinition.from_dict(mytask.task)
+
+    my_task_status = TaskStatus.from_task_id('M5hSue6oRSu_klunMRHolg')
+    my_task_status = TaskStatus.from_dict(mytask.status)
+
+
+
 
 Pandas
 ======
