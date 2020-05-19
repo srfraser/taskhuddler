@@ -18,7 +18,7 @@ tasks:
                   else: '${event.pull_request.user.login}@users.noreply.github.com'}
   in:
     # map tox command -> docker image
-    $map: [['py36', 'python:3.6'], ['py37', 'python:3.7'],
+    $map: [['py37', 'python:3.7'],
            ['py38', 'python:3.8'], ['check', 'python:3.7']]
     each(py):
       taskId: "${as_slugid(py[0])}"
